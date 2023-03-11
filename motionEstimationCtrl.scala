@@ -30,16 +30,17 @@ class controller() extends Module {
   io.axiAddr    := 0.U
   io.axiAWrFlag := 0.U
   io.axiDataOut := VecInit(Seq.fill(4)(0.U(16.W)))
-  io.vec1       := VecInit(Seq.fill(4)(0.U(16.W)))
-  io.vec2       := VecInit(Seq.fill(4)(0.U(16.W)))
   io.accOut     := 0.U
 
   // registered
   val acc = RegInit(0.U(32.W))
   val row = RegInit(0.U(32.W))
+  val vec1_reg = RegInit(VecInit(Seq.fill(4)(0.U(16.W))))
+  val vec2_reg = RegInit(VecInit(Seq.fill(4)(0.U(16.W))))
+
 
   // FSM
-  val idle :: fetch1 :: fetch2 :: process :: done :: Nil = Enum(5)
+  val idle :: fetch1 :: fetch2 :: process :: calc :: done :: Nil = Enum(6)
   val state = RegInit(0.U(3.W))
 
   // State Machine
@@ -47,13 +48,15 @@ class controller() extends Module {
     io.axiAddr := (io.mbBufferWidth * row) + io.initAddr1
     state := fetch1
   }.elsewhen(state === fetch1) {
-    io.vec1 := io.axiDataIn
+    vec1_reg := io.axiDataIn
     io.axiAddr := (io.stride * row) + io.initAddr2
     state := fetch2
   }.elsewhen(state === fetch2) {
-    io.vec2 := io.axiDataIn
+    vec2_reg := io.axiDataIn
     state := process
   }.elsewhen(state === process) {
+    state := calc
+  }.elsewhen(state === calc) {
     acc := acc + io.computeDataIn
     io.axiAddr := (io.mbBufferWidth * row) + io.initAddr1
     when(row < io.numRows) {
@@ -63,5 +66,9 @@ class controller() extends Module {
     }
   }
   io.accOut := acc
+
+  io.vec1 := vec1_reg
+  io.vec2 := vec2_reg
+  io.axiDataOut := vec1_reg
 
 }
