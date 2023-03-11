@@ -1,6 +1,5 @@
 
 import chisel3._
-import chisel3.iotesters._
 import chiseltest._
 import org.scalatest.freespec.AnyFreeSpec
 
@@ -14,13 +13,15 @@ class motionEstimationCtrlTest extends AnyFreeSpec with ChiselScalatestTester {
       dut.io.stride.poke(0.U)
       dut.io.numRows.poke(1.U)
 
+      dut.io.computeDataIn.poke(10.U)
+
       // Run FSM once
       dut.clock.step(1)
       dut.io.axiDataIn(0).poke(1.U)
       dut.io.axiDataIn(1).poke(2.U)
       dut.io.axiDataIn(2).poke(3.U)
       dut.io.axiDataIn(3).poke(4.U)
-      dut.acc.expect(0.U)
+      dut.io.accOut.expect(0.U)
 
       // Run FSM for a second time
       dut.clock.step(1)
@@ -28,12 +29,26 @@ class motionEstimationCtrlTest extends AnyFreeSpec with ChiselScalatestTester {
       dut.io.axiDataIn(1).poke(2.U)
       dut.io.axiDataIn(2).poke(2.U)
       dut.io.axiDataIn(3).poke(2.U)
-      dut.acc.expect(0.U)
+      dut.io.accOut.expect(0.U)
 
       // Run FSM for a third time
       dut.clock.step(1)
-      dut.io.computeDataIn.expect(4.U) // updated to expect the value of uiSum from getSad4x_inst
-      dut.acc.expect(4.U)
+
+      // Run FSM for a fourth time
+      dut.clock.step(1)
+      dut.io.accOut.expect(10.U)
+
+      dut.io.computeDataIn.poke(7.U)
+      dut.clock.step(3)
+      dut.io.accOut.expect(17.U)
+
+      dut.io.computeDataIn.poke(5.U)
+      dut.clock.step(3)
+      dut.io.accOut.expect(22.U)
+
+      dut.io.computeDataIn.poke(3.U)
+      dut.clock.step(3)
+      dut.io.accOut.expect(25.U)
     }
   }
 }

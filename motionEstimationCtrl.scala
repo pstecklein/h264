@@ -1,8 +1,6 @@
 
 import chisel3._
 import chisel3.util._
-import chisel3.experimental.FixedPoint
-
 
 object motionEstimationCtrl extends App {
   println("[{(Generating Verilog file)}]")
@@ -25,15 +23,8 @@ class controller() extends Module {
     // End AXI Interface
     val vec1          = Output(Vec(4, UInt(16.W)))
     val vec2          = Output(Vec(4, UInt(16.W)))
+    val accOut        = Output(UInt(32.W))
   })
-
-  // Create instance of getSad4x
-  val getSad4x_inst = Module(new getSad4x())
-
-  // Connect inputs and outputs of getSad4x
-  getSad4x_inst.io.org := io.vec1
-  getSad4x_inst.io.cur := io.vec2
-  io.computeDataIn := getSad4x_inst.io.out
 
   // defaults
   io.axiAddr    := 0.U
@@ -41,6 +32,7 @@ class controller() extends Module {
   io.axiDataOut := VecInit(Seq.fill(4)(0.U(16.W)))
   io.vec1       := VecInit(Seq.fill(4)(0.U(16.W)))
   io.vec2       := VecInit(Seq.fill(4)(0.U(16.W)))
+  io.accOut     := 0.U
 
   // registered
   val acc = RegInit(0.U(32.W))
@@ -70,5 +62,6 @@ class controller() extends Module {
       state := done
     }
   }
+  io.accOut := acc
 
 }
