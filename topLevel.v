@@ -1,6 +1,7 @@
 module controller(
   input         clock,
   input         reset,
+  input  [4:0]  io_computeSize,
   input  [63:0] io_initAddr1,
   input  [63:0] io_initAddr2,
   input  [31:0] io_mbBufferWidth,
@@ -37,129 +38,170 @@ module controller(
   reg [31:0] _RAND_7;
   reg [31:0] _RAND_8;
   reg [31:0] _RAND_9;
+  reg [31:0] _RAND_10;
+  reg [31:0] _RAND_11;
 `endif // RANDOMIZE_REG_INIT
-  reg [31:0] acc; // @[motionEstimationCtrl.scala 36:20]
-  reg [15:0] vec1_reg_0; // @[motionEstimationCtrl.scala 38:25]
-  reg [15:0] vec1_reg_1; // @[motionEstimationCtrl.scala 38:25]
-  reg [15:0] vec1_reg_2; // @[motionEstimationCtrl.scala 38:25]
-  reg [15:0] vec1_reg_3; // @[motionEstimationCtrl.scala 38:25]
-  reg [15:0] vec2_reg_0; // @[motionEstimationCtrl.scala 39:25]
-  reg [15:0] vec2_reg_1; // @[motionEstimationCtrl.scala 39:25]
-  reg [15:0] vec2_reg_2; // @[motionEstimationCtrl.scala 39:25]
-  reg [15:0] vec2_reg_3; // @[motionEstimationCtrl.scala 39:25]
-  reg [2:0] state; // @[motionEstimationCtrl.scala 44:22]
-  wire [63:0] _io_axiAddr_T = io_mbBufferWidth * 32'h0; // @[motionEstimationCtrl.scala 48:37]
-  wire [63:0] _io_axiAddr_T_2 = _io_axiAddr_T + io_initAddr1; // @[motionEstimationCtrl.scala 48:44]
-  wire [63:0] _io_axiAddr_T_3 = io_stride * 32'h0; // @[motionEstimationCtrl.scala 52:30]
-  wire [63:0] _io_axiAddr_T_5 = _io_axiAddr_T_3 + io_initAddr2; // @[motionEstimationCtrl.scala 52:37]
-  wire [31:0] _acc_T_1 = acc + io_computeDataIn; // @[motionEstimationCtrl.scala 60:16]
-  wire [2:0] _GEN_0 = 32'h0 < io_numRows ? 3'h1 : 3'h5; // @[motionEstimationCtrl.scala 62:28 63:13 65:13]
-  wire [31:0] _GEN_1 = state == 3'h4 ? _acc_T_1 : acc; // @[motionEstimationCtrl.scala 36:20 59:30 60:9]
-  wire [63:0] _GEN_2 = state == 3'h4 ? _io_axiAddr_T_2 : 64'h0; // @[motionEstimationCtrl.scala 59:30 61:16 30:17]
-  wire [2:0] _GEN_3 = state == 3'h4 ? _GEN_0 : state; // @[motionEstimationCtrl.scala 44:22 59:30]
-  wire [2:0] _GEN_4 = state == 3'h3 ? 3'h4 : _GEN_3; // @[motionEstimationCtrl.scala 57:33 58:11]
-  wire [31:0] _GEN_5 = state == 3'h3 ? acc : _GEN_1; // @[motionEstimationCtrl.scala 36:20 57:33]
-  wire [63:0] _GEN_6 = state == 3'h3 ? 64'h0 : _GEN_2; // @[motionEstimationCtrl.scala 30:17 57:33]
-  wire [63:0] _GEN_13 = state == 3'h2 ? 64'h0 : _GEN_6; // @[motionEstimationCtrl.scala 30:17 54:32]
-  wire [63:0] _GEN_18 = state == 3'h1 ? _io_axiAddr_T_5 : _GEN_13; // @[motionEstimationCtrl.scala 50:32 52:16]
-  assign io_axiAddr = state == 3'h0 ? _io_axiAddr_T_2 : _GEN_18; // @[motionEstimationCtrl.scala 47:24 48:16]
-  assign io_axiDataOut_0 = vec1_reg_0; // @[motionEstimationCtrl.scala 72:17]
-  assign io_axiDataOut_1 = vec1_reg_1; // @[motionEstimationCtrl.scala 72:17]
-  assign io_axiDataOut_2 = vec1_reg_2; // @[motionEstimationCtrl.scala 72:17]
-  assign io_axiDataOut_3 = vec1_reg_3; // @[motionEstimationCtrl.scala 72:17]
-  assign io_vec1_0 = vec1_reg_0; // @[motionEstimationCtrl.scala 70:11]
-  assign io_vec1_1 = vec1_reg_1; // @[motionEstimationCtrl.scala 70:11]
-  assign io_vec1_2 = vec1_reg_2; // @[motionEstimationCtrl.scala 70:11]
-  assign io_vec1_3 = vec1_reg_3; // @[motionEstimationCtrl.scala 70:11]
-  assign io_vec2_0 = vec2_reg_0; // @[motionEstimationCtrl.scala 71:11]
-  assign io_vec2_1 = vec2_reg_1; // @[motionEstimationCtrl.scala 71:11]
-  assign io_vec2_2 = vec2_reg_2; // @[motionEstimationCtrl.scala 71:11]
-  assign io_vec2_3 = vec2_reg_3; // @[motionEstimationCtrl.scala 71:11]
-  assign io_accOut = acc; // @[motionEstimationCtrl.scala 68:13]
+  reg [1:0] shift; // @[motionEstimationCtrl.scala 37:26]
+  reg [31:0] acc; // @[motionEstimationCtrl.scala 38:26]
+  reg [31:0] row; // @[motionEstimationCtrl.scala 39:26]
+  reg [15:0] vec1_reg_0; // @[motionEstimationCtrl.scala 40:26]
+  reg [15:0] vec1_reg_1; // @[motionEstimationCtrl.scala 40:26]
+  reg [15:0] vec1_reg_2; // @[motionEstimationCtrl.scala 40:26]
+  reg [15:0] vec1_reg_3; // @[motionEstimationCtrl.scala 40:26]
+  reg [15:0] vec2_reg_0; // @[motionEstimationCtrl.scala 41:26]
+  reg [15:0] vec2_reg_1; // @[motionEstimationCtrl.scala 41:26]
+  reg [15:0] vec2_reg_2; // @[motionEstimationCtrl.scala 41:26]
+  reg [15:0] vec2_reg_3; // @[motionEstimationCtrl.scala 41:26]
+  reg [2:0] state; // @[motionEstimationCtrl.scala 45:22]
+  wire [63:0] _io_axiAddr_T = io_mbBufferWidth * row; // @[motionEstimationCtrl.scala 49:37]
+  wire [63:0] _io_axiAddr_T_2 = _io_axiAddr_T + io_initAddr1; // @[motionEstimationCtrl.scala 49:44]
+  wire [63:0] _GEN_51 = {{62'd0}, shift}; // @[motionEstimationCtrl.scala 49:59]
+  wire [63:0] _io_axiAddr_T_4 = _io_axiAddr_T_2 + _GEN_51; // @[motionEstimationCtrl.scala 49:59]
+  wire [63:0] _io_axiAddr_T_5 = io_stride * row; // @[motionEstimationCtrl.scala 53:30]
+  wire [63:0] _io_axiAddr_T_7 = _io_axiAddr_T_5 + io_initAddr2; // @[motionEstimationCtrl.scala 53:37]
+  wire [63:0] _io_axiAddr_T_9 = _io_axiAddr_T_7 + _GEN_51; // @[motionEstimationCtrl.scala 53:52]
+  wire [31:0] _acc_T_1 = acc + io_computeDataIn; // @[motionEstimationCtrl.scala 61:23]
+  wire [31:0] _T_15 = row + 32'h1; // @[motionEstimationCtrl.scala 68:17]
+  wire [31:0] _GEN_0 = _T_15 < io_numRows ? _T_15 : row; // @[motionEstimationCtrl.scala 68:38 69:18 39:26]
+  wire [2:0] _GEN_1 = _T_15 < io_numRows ? 3'h1 : 3'h5; // @[motionEstimationCtrl.scala 68:38 70:18 72:18]
+  wire [1:0] _shift_T_1 = shift + 2'h1; // @[motionEstimationCtrl.scala 75:27]
+  wire [63:0] _io_axiAddr_T_19 = _io_axiAddr_T_4 + 64'h1; // @[motionEstimationCtrl.scala 76:69]
+  wire [63:0] _GEN_2 = io_computeSize == 5'h10 & shift >= 2'h3 | io_computeSize == 5'h8 & shift >= 2'h1 | io_computeSize
+     == 5'h4 ? _io_axiAddr_T_2 : _io_axiAddr_T_19; // @[motionEstimationCtrl.scala 65:125 66:18 76:18]
+  wire [1:0] _GEN_3 = io_computeSize == 5'h10 & shift >= 2'h3 | io_computeSize == 5'h8 & shift >= 2'h1 | io_computeSize
+     == 5'h4 ? 2'h0 : _shift_T_1; // @[motionEstimationCtrl.scala 65:125 67:18 75:18]
+  wire [31:0] _GEN_4 = io_computeSize == 5'h10 & shift >= 2'h3 | io_computeSize == 5'h8 & shift >= 2'h1 | io_computeSize
+     == 5'h4 ? _GEN_0 : row; // @[motionEstimationCtrl.scala 65:125 39:26]
+  wire [2:0] _GEN_5 = io_computeSize == 5'h10 & shift >= 2'h3 | io_computeSize == 5'h8 & shift >= 2'h1 | io_computeSize
+     == 5'h4 ? _GEN_1 : 3'h1; // @[motionEstimationCtrl.scala 65:125 77:18]
+  wire [31:0] _GEN_6 = state == 3'h4 ? _acc_T_1 : acc; // @[motionEstimationCtrl.scala 60:30 61:16 38:26]
+  wire [63:0] _GEN_7 = state == 3'h4 ? _GEN_2 : 64'h0; // @[motionEstimationCtrl.scala 31:17 60:30]
+  wire [1:0] _GEN_8 = state == 3'h4 ? _GEN_3 : shift; // @[motionEstimationCtrl.scala 37:26 60:30]
+  wire [31:0] _GEN_9 = state == 3'h4 ? _GEN_4 : row; // @[motionEstimationCtrl.scala 39:26 60:30]
+  wire [2:0] _GEN_10 = state == 3'h4 ? _GEN_5 : 3'h0; // @[motionEstimationCtrl.scala 60:30 81:18]
+  wire [2:0] _GEN_11 = state == 3'h3 ? 3'h4 : _GEN_10; // @[motionEstimationCtrl.scala 58:33 59:16]
+  wire [31:0] _GEN_12 = state == 3'h3 ? acc : _GEN_6; // @[motionEstimationCtrl.scala 38:26 58:33]
+  wire [63:0] _GEN_13 = state == 3'h3 ? 64'h0 : _GEN_7; // @[motionEstimationCtrl.scala 31:17 58:33]
+  wire [1:0] _GEN_14 = state == 3'h3 ? shift : _GEN_8; // @[motionEstimationCtrl.scala 37:26 58:33]
+  wire [31:0] _GEN_15 = state == 3'h3 ? row : _GEN_9; // @[motionEstimationCtrl.scala 39:26 58:33]
+  wire [63:0] _GEN_22 = state == 3'h2 ? 64'h0 : _GEN_13; // @[motionEstimationCtrl.scala 31:17 55:32]
+  wire [63:0] _GEN_29 = state == 3'h1 ? _io_axiAddr_T_9 : _GEN_22; // @[motionEstimationCtrl.scala 51:32 53:16]
+  assign io_axiAddr = state == 3'h0 ? _io_axiAddr_T_4 : _GEN_29; // @[motionEstimationCtrl.scala 48:24 49:16]
+  assign io_axiDataOut_0 = vec1_reg_0; // @[motionEstimationCtrl.scala 87:18]
+  assign io_axiDataOut_1 = vec1_reg_1; // @[motionEstimationCtrl.scala 87:18]
+  assign io_axiDataOut_2 = vec1_reg_2; // @[motionEstimationCtrl.scala 87:18]
+  assign io_axiDataOut_3 = vec1_reg_3; // @[motionEstimationCtrl.scala 87:18]
+  assign io_vec1_0 = vec1_reg_0; // @[motionEstimationCtrl.scala 85:18]
+  assign io_vec1_1 = vec1_reg_1; // @[motionEstimationCtrl.scala 85:18]
+  assign io_vec1_2 = vec1_reg_2; // @[motionEstimationCtrl.scala 85:18]
+  assign io_vec1_3 = vec1_reg_3; // @[motionEstimationCtrl.scala 85:18]
+  assign io_vec2_0 = vec2_reg_0; // @[motionEstimationCtrl.scala 86:18]
+  assign io_vec2_1 = vec2_reg_1; // @[motionEstimationCtrl.scala 86:18]
+  assign io_vec2_2 = vec2_reg_2; // @[motionEstimationCtrl.scala 86:18]
+  assign io_vec2_3 = vec2_reg_3; // @[motionEstimationCtrl.scala 86:18]
+  assign io_accOut = acc; // @[motionEstimationCtrl.scala 84:18]
   always @(posedge clock) begin
-    if (reset) begin // @[motionEstimationCtrl.scala 36:20]
-      acc <= 32'h0; // @[motionEstimationCtrl.scala 36:20]
-    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 47:24]
-      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 50:32]
-        if (!(state == 3'h2)) begin // @[motionEstimationCtrl.scala 54:32]
-          acc <= _GEN_5;
+    if (reset) begin // @[motionEstimationCtrl.scala 37:26]
+      shift <= 2'h0; // @[motionEstimationCtrl.scala 37:26]
+    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 48:24]
+      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 51:32]
+        if (!(state == 3'h2)) begin // @[motionEstimationCtrl.scala 55:32]
+          shift <= _GEN_14;
         end
       end
     end
-    if (reset) begin // @[motionEstimationCtrl.scala 38:25]
-      vec1_reg_0 <= 16'h0; // @[motionEstimationCtrl.scala 38:25]
-    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 47:24]
-      if (state == 3'h1) begin // @[motionEstimationCtrl.scala 50:32]
-        vec1_reg_0 <= io_axiDataIn_0; // @[motionEstimationCtrl.scala 51:14]
-      end
-    end
-    if (reset) begin // @[motionEstimationCtrl.scala 38:25]
-      vec1_reg_1 <= 16'h0; // @[motionEstimationCtrl.scala 38:25]
-    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 47:24]
-      if (state == 3'h1) begin // @[motionEstimationCtrl.scala 50:32]
-        vec1_reg_1 <= io_axiDataIn_1; // @[motionEstimationCtrl.scala 51:14]
-      end
-    end
-    if (reset) begin // @[motionEstimationCtrl.scala 38:25]
-      vec1_reg_2 <= 16'h0; // @[motionEstimationCtrl.scala 38:25]
-    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 47:24]
-      if (state == 3'h1) begin // @[motionEstimationCtrl.scala 50:32]
-        vec1_reg_2 <= io_axiDataIn_2; // @[motionEstimationCtrl.scala 51:14]
-      end
-    end
-    if (reset) begin // @[motionEstimationCtrl.scala 38:25]
-      vec1_reg_3 <= 16'h0; // @[motionEstimationCtrl.scala 38:25]
-    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 47:24]
-      if (state == 3'h1) begin // @[motionEstimationCtrl.scala 50:32]
-        vec1_reg_3 <= io_axiDataIn_3; // @[motionEstimationCtrl.scala 51:14]
-      end
-    end
-    if (reset) begin // @[motionEstimationCtrl.scala 39:25]
-      vec2_reg_0 <= 16'h0; // @[motionEstimationCtrl.scala 39:25]
-    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 47:24]
-      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 50:32]
-        if (state == 3'h2) begin // @[motionEstimationCtrl.scala 54:32]
-          vec2_reg_0 <= io_axiDataIn_0; // @[motionEstimationCtrl.scala 55:14]
+    if (reset) begin // @[motionEstimationCtrl.scala 38:26]
+      acc <= 32'h0; // @[motionEstimationCtrl.scala 38:26]
+    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 48:24]
+      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 51:32]
+        if (!(state == 3'h2)) begin // @[motionEstimationCtrl.scala 55:32]
+          acc <= _GEN_12;
         end
       end
     end
-    if (reset) begin // @[motionEstimationCtrl.scala 39:25]
-      vec2_reg_1 <= 16'h0; // @[motionEstimationCtrl.scala 39:25]
-    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 47:24]
-      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 50:32]
-        if (state == 3'h2) begin // @[motionEstimationCtrl.scala 54:32]
-          vec2_reg_1 <= io_axiDataIn_1; // @[motionEstimationCtrl.scala 55:14]
+    if (reset) begin // @[motionEstimationCtrl.scala 39:26]
+      row <= 32'h0; // @[motionEstimationCtrl.scala 39:26]
+    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 48:24]
+      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 51:32]
+        if (!(state == 3'h2)) begin // @[motionEstimationCtrl.scala 55:32]
+          row <= _GEN_15;
         end
       end
     end
-    if (reset) begin // @[motionEstimationCtrl.scala 39:25]
-      vec2_reg_2 <= 16'h0; // @[motionEstimationCtrl.scala 39:25]
-    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 47:24]
-      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 50:32]
-        if (state == 3'h2) begin // @[motionEstimationCtrl.scala 54:32]
-          vec2_reg_2 <= io_axiDataIn_2; // @[motionEstimationCtrl.scala 55:14]
+    if (reset) begin // @[motionEstimationCtrl.scala 40:26]
+      vec1_reg_0 <= 16'h0; // @[motionEstimationCtrl.scala 40:26]
+    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 48:24]
+      if (state == 3'h1) begin // @[motionEstimationCtrl.scala 51:32]
+        vec1_reg_0 <= io_axiDataIn_0; // @[motionEstimationCtrl.scala 52:16]
+      end
+    end
+    if (reset) begin // @[motionEstimationCtrl.scala 40:26]
+      vec1_reg_1 <= 16'h0; // @[motionEstimationCtrl.scala 40:26]
+    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 48:24]
+      if (state == 3'h1) begin // @[motionEstimationCtrl.scala 51:32]
+        vec1_reg_1 <= io_axiDataIn_1; // @[motionEstimationCtrl.scala 52:16]
+      end
+    end
+    if (reset) begin // @[motionEstimationCtrl.scala 40:26]
+      vec1_reg_2 <= 16'h0; // @[motionEstimationCtrl.scala 40:26]
+    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 48:24]
+      if (state == 3'h1) begin // @[motionEstimationCtrl.scala 51:32]
+        vec1_reg_2 <= io_axiDataIn_2; // @[motionEstimationCtrl.scala 52:16]
+      end
+    end
+    if (reset) begin // @[motionEstimationCtrl.scala 40:26]
+      vec1_reg_3 <= 16'h0; // @[motionEstimationCtrl.scala 40:26]
+    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 48:24]
+      if (state == 3'h1) begin // @[motionEstimationCtrl.scala 51:32]
+        vec1_reg_3 <= io_axiDataIn_3; // @[motionEstimationCtrl.scala 52:16]
+      end
+    end
+    if (reset) begin // @[motionEstimationCtrl.scala 41:26]
+      vec2_reg_0 <= 16'h0; // @[motionEstimationCtrl.scala 41:26]
+    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 48:24]
+      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 51:32]
+        if (state == 3'h2) begin // @[motionEstimationCtrl.scala 55:32]
+          vec2_reg_0 <= io_axiDataIn_0; // @[motionEstimationCtrl.scala 56:16]
         end
       end
     end
-    if (reset) begin // @[motionEstimationCtrl.scala 39:25]
-      vec2_reg_3 <= 16'h0; // @[motionEstimationCtrl.scala 39:25]
-    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 47:24]
-      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 50:32]
-        if (state == 3'h2) begin // @[motionEstimationCtrl.scala 54:32]
-          vec2_reg_3 <= io_axiDataIn_3; // @[motionEstimationCtrl.scala 55:14]
+    if (reset) begin // @[motionEstimationCtrl.scala 41:26]
+      vec2_reg_1 <= 16'h0; // @[motionEstimationCtrl.scala 41:26]
+    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 48:24]
+      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 51:32]
+        if (state == 3'h2) begin // @[motionEstimationCtrl.scala 55:32]
+          vec2_reg_1 <= io_axiDataIn_1; // @[motionEstimationCtrl.scala 56:16]
         end
       end
     end
-    if (reset) begin // @[motionEstimationCtrl.scala 44:22]
-      state <= 3'h0; // @[motionEstimationCtrl.scala 44:22]
-    end else if (state == 3'h0) begin // @[motionEstimationCtrl.scala 47:24]
-      state <= 3'h1; // @[motionEstimationCtrl.scala 49:11]
-    end else if (state == 3'h1) begin // @[motionEstimationCtrl.scala 50:32]
-      state <= 3'h2; // @[motionEstimationCtrl.scala 53:11]
-    end else if (state == 3'h2) begin // @[motionEstimationCtrl.scala 54:32]
-      state <= 3'h3; // @[motionEstimationCtrl.scala 56:11]
+    if (reset) begin // @[motionEstimationCtrl.scala 41:26]
+      vec2_reg_2 <= 16'h0; // @[motionEstimationCtrl.scala 41:26]
+    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 48:24]
+      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 51:32]
+        if (state == 3'h2) begin // @[motionEstimationCtrl.scala 55:32]
+          vec2_reg_2 <= io_axiDataIn_2; // @[motionEstimationCtrl.scala 56:16]
+        end
+      end
+    end
+    if (reset) begin // @[motionEstimationCtrl.scala 41:26]
+      vec2_reg_3 <= 16'h0; // @[motionEstimationCtrl.scala 41:26]
+    end else if (!(state == 3'h0)) begin // @[motionEstimationCtrl.scala 48:24]
+      if (!(state == 3'h1)) begin // @[motionEstimationCtrl.scala 51:32]
+        if (state == 3'h2) begin // @[motionEstimationCtrl.scala 55:32]
+          vec2_reg_3 <= io_axiDataIn_3; // @[motionEstimationCtrl.scala 56:16]
+        end
+      end
+    end
+    if (reset) begin // @[motionEstimationCtrl.scala 45:22]
+      state <= 3'h0; // @[motionEstimationCtrl.scala 45:22]
+    end else if (state == 3'h0) begin // @[motionEstimationCtrl.scala 48:24]
+      state <= 3'h1; // @[motionEstimationCtrl.scala 50:16]
+    end else if (state == 3'h1) begin // @[motionEstimationCtrl.scala 51:32]
+      state <= 3'h2; // @[motionEstimationCtrl.scala 54:16]
+    end else if (state == 3'h2) begin // @[motionEstimationCtrl.scala 55:32]
+      state <= 3'h3; // @[motionEstimationCtrl.scala 57:16]
     end else begin
-      state <= _GEN_4;
+      state <= _GEN_11;
     end
   end
 // Register and memory initialization
@@ -199,25 +241,29 @@ initial begin
     `endif
 `ifdef RANDOMIZE_REG_INIT
   _RAND_0 = {1{`RANDOM}};
-  acc = _RAND_0[31:0];
+  shift = _RAND_0[1:0];
   _RAND_1 = {1{`RANDOM}};
-  vec1_reg_0 = _RAND_1[15:0];
+  acc = _RAND_1[31:0];
   _RAND_2 = {1{`RANDOM}};
-  vec1_reg_1 = _RAND_2[15:0];
+  row = _RAND_2[31:0];
   _RAND_3 = {1{`RANDOM}};
-  vec1_reg_2 = _RAND_3[15:0];
+  vec1_reg_0 = _RAND_3[15:0];
   _RAND_4 = {1{`RANDOM}};
-  vec1_reg_3 = _RAND_4[15:0];
+  vec1_reg_1 = _RAND_4[15:0];
   _RAND_5 = {1{`RANDOM}};
-  vec2_reg_0 = _RAND_5[15:0];
+  vec1_reg_2 = _RAND_5[15:0];
   _RAND_6 = {1{`RANDOM}};
-  vec2_reg_1 = _RAND_6[15:0];
+  vec1_reg_3 = _RAND_6[15:0];
   _RAND_7 = {1{`RANDOM}};
-  vec2_reg_2 = _RAND_7[15:0];
+  vec2_reg_0 = _RAND_7[15:0];
   _RAND_8 = {1{`RANDOM}};
-  vec2_reg_3 = _RAND_8[15:0];
+  vec2_reg_1 = _RAND_8[15:0];
   _RAND_9 = {1{`RANDOM}};
-  state = _RAND_9[2:0];
+  vec2_reg_2 = _RAND_9[15:0];
+  _RAND_10 = {1{`RANDOM}};
+  vec2_reg_3 = _RAND_10[15:0];
+  _RAND_11 = {1{`RANDOM}};
+  state = _RAND_11[2:0];
 `endif // RANDOMIZE_REG_INIT
   `endif // RANDOMIZE
 end // initial
@@ -315,6 +361,7 @@ endmodule
 module topLevel(
   input         clock,
   input         reset,
+  input  [4:0]  io_size,
   input  [63:0] io_initAddr1,
   input  [63:0] io_initAddr2,
   input  [31:0] io_mbBufferWidth,
@@ -332,46 +379,48 @@ module topLevel(
   output [15:0] io_axiWData_3,
   output [31:0] io_topAccOut
 );
-  wire  controller_inst_clock; // @[mecTop.scala 25:31]
-  wire  controller_inst_reset; // @[mecTop.scala 25:31]
-  wire [63:0] controller_inst_io_initAddr1; // @[mecTop.scala 25:31]
-  wire [63:0] controller_inst_io_initAddr2; // @[mecTop.scala 25:31]
-  wire [31:0] controller_inst_io_mbBufferWidth; // @[mecTop.scala 25:31]
-  wire [31:0] controller_inst_io_stride; // @[mecTop.scala 25:31]
-  wire [31:0] controller_inst_io_numRows; // @[mecTop.scala 25:31]
-  wire [31:0] controller_inst_io_computeDataIn; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_axiDataIn_0; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_axiDataIn_1; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_axiDataIn_2; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_axiDataIn_3; // @[mecTop.scala 25:31]
-  wire [63:0] controller_inst_io_axiAddr; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_axiDataOut_0; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_axiDataOut_1; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_axiDataOut_2; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_axiDataOut_3; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_vec1_0; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_vec1_1; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_vec1_2; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_vec1_3; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_vec2_0; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_vec2_1; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_vec2_2; // @[mecTop.scala 25:31]
-  wire [15:0] controller_inst_io_vec2_3; // @[mecTop.scala 25:31]
-  wire [31:0] controller_inst_io_accOut; // @[mecTop.scala 25:31]
-  wire  getSad4x_inst_clock; // @[mecTop.scala 26:29]
-  wire  getSad4x_inst_reset; // @[mecTop.scala 26:29]
-  wire [15:0] getSad4x_inst_io_org_0; // @[mecTop.scala 26:29]
-  wire [15:0] getSad4x_inst_io_org_1; // @[mecTop.scala 26:29]
-  wire [15:0] getSad4x_inst_io_org_2; // @[mecTop.scala 26:29]
-  wire [15:0] getSad4x_inst_io_org_3; // @[mecTop.scala 26:29]
-  wire [15:0] getSad4x_inst_io_cur_0; // @[mecTop.scala 26:29]
-  wire [15:0] getSad4x_inst_io_cur_1; // @[mecTop.scala 26:29]
-  wire [15:0] getSad4x_inst_io_cur_2; // @[mecTop.scala 26:29]
-  wire [15:0] getSad4x_inst_io_cur_3; // @[mecTop.scala 26:29]
-  wire [31:0] getSad4x_inst_io_out; // @[mecTop.scala 26:29]
-  controller controller_inst ( // @[mecTop.scala 25:31]
+  wire  controller_inst_clock; // @[mecTop.scala 26:31]
+  wire  controller_inst_reset; // @[mecTop.scala 26:31]
+  wire [4:0] controller_inst_io_computeSize; // @[mecTop.scala 26:31]
+  wire [63:0] controller_inst_io_initAddr1; // @[mecTop.scala 26:31]
+  wire [63:0] controller_inst_io_initAddr2; // @[mecTop.scala 26:31]
+  wire [31:0] controller_inst_io_mbBufferWidth; // @[mecTop.scala 26:31]
+  wire [31:0] controller_inst_io_stride; // @[mecTop.scala 26:31]
+  wire [31:0] controller_inst_io_numRows; // @[mecTop.scala 26:31]
+  wire [31:0] controller_inst_io_computeDataIn; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_axiDataIn_0; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_axiDataIn_1; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_axiDataIn_2; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_axiDataIn_3; // @[mecTop.scala 26:31]
+  wire [63:0] controller_inst_io_axiAddr; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_axiDataOut_0; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_axiDataOut_1; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_axiDataOut_2; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_axiDataOut_3; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_vec1_0; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_vec1_1; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_vec1_2; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_vec1_3; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_vec2_0; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_vec2_1; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_vec2_2; // @[mecTop.scala 26:31]
+  wire [15:0] controller_inst_io_vec2_3; // @[mecTop.scala 26:31]
+  wire [31:0] controller_inst_io_accOut; // @[mecTop.scala 26:31]
+  wire  getSad4x_inst_clock; // @[mecTop.scala 27:29]
+  wire  getSad4x_inst_reset; // @[mecTop.scala 27:29]
+  wire [15:0] getSad4x_inst_io_org_0; // @[mecTop.scala 27:29]
+  wire [15:0] getSad4x_inst_io_org_1; // @[mecTop.scala 27:29]
+  wire [15:0] getSad4x_inst_io_org_2; // @[mecTop.scala 27:29]
+  wire [15:0] getSad4x_inst_io_org_3; // @[mecTop.scala 27:29]
+  wire [15:0] getSad4x_inst_io_cur_0; // @[mecTop.scala 27:29]
+  wire [15:0] getSad4x_inst_io_cur_1; // @[mecTop.scala 27:29]
+  wire [15:0] getSad4x_inst_io_cur_2; // @[mecTop.scala 27:29]
+  wire [15:0] getSad4x_inst_io_cur_3; // @[mecTop.scala 27:29]
+  wire [31:0] getSad4x_inst_io_out; // @[mecTop.scala 27:29]
+  controller controller_inst ( // @[mecTop.scala 26:31]
     .clock(controller_inst_clock),
     .reset(controller_inst_reset),
+    .io_computeSize(controller_inst_io_computeSize),
     .io_initAddr1(controller_inst_io_initAddr1),
     .io_initAddr2(controller_inst_io_initAddr2),
     .io_mbBufferWidth(controller_inst_io_mbBufferWidth),
@@ -397,7 +446,7 @@ module topLevel(
     .io_vec2_3(controller_inst_io_vec2_3),
     .io_accOut(controller_inst_io_accOut)
   );
-  getSad4x getSad4x_inst ( // @[mecTop.scala 26:29]
+  getSad4x getSad4x_inst ( // @[mecTop.scala 27:29]
     .clock(getSad4x_inst_clock),
     .reset(getSad4x_inst_reset),
     .io_org_0(getSad4x_inst_io_org_0),
@@ -410,33 +459,34 @@ module topLevel(
     .io_cur_3(getSad4x_inst_io_cur_3),
     .io_out(getSad4x_inst_io_out)
   );
-  assign io_axiAddr = controller_inst_io_axiAddr; // @[mecTop.scala 34:17]
-  assign io_axiAWrFlag = 1'h0; // @[mecTop.scala 35:17]
-  assign io_axiWData_0 = controller_inst_io_axiDataOut_0; // @[mecTop.scala 37:17]
-  assign io_axiWData_1 = controller_inst_io_axiDataOut_1; // @[mecTop.scala 37:17]
-  assign io_axiWData_2 = controller_inst_io_axiDataOut_2; // @[mecTop.scala 37:17]
-  assign io_axiWData_3 = controller_inst_io_axiDataOut_3; // @[mecTop.scala 37:17]
-  assign io_topAccOut = controller_inst_io_accOut; // @[mecTop.scala 45:16]
+  assign io_axiAddr = controller_inst_io_axiAddr; // @[mecTop.scala 35:17]
+  assign io_axiAWrFlag = 1'h0; // @[mecTop.scala 36:17]
+  assign io_axiWData_0 = controller_inst_io_axiDataOut_0; // @[mecTop.scala 38:17]
+  assign io_axiWData_1 = controller_inst_io_axiDataOut_1; // @[mecTop.scala 38:17]
+  assign io_axiWData_2 = controller_inst_io_axiDataOut_2; // @[mecTop.scala 38:17]
+  assign io_axiWData_3 = controller_inst_io_axiDataOut_3; // @[mecTop.scala 38:17]
+  assign io_topAccOut = controller_inst_io_accOut; // @[mecTop.scala 47:16]
   assign controller_inst_clock = clock;
   assign controller_inst_reset = reset;
-  assign controller_inst_io_initAddr1 = io_initAddr1; // @[mecTop.scala 40:32]
-  assign controller_inst_io_initAddr2 = io_initAddr2; // @[mecTop.scala 41:32]
-  assign controller_inst_io_mbBufferWidth = io_mbBufferWidth; // @[mecTop.scala 42:36]
-  assign controller_inst_io_stride = io_stride; // @[mecTop.scala 43:29]
-  assign controller_inst_io_numRows = io_numRows; // @[mecTop.scala 44:30]
-  assign controller_inst_io_computeDataIn = getSad4x_inst_io_out; // @[mecTop.scala 31:36]
-  assign controller_inst_io_axiDataIn_0 = io_axiRData_0; // @[mecTop.scala 36:32]
-  assign controller_inst_io_axiDataIn_1 = io_axiRData_1; // @[mecTop.scala 36:32]
-  assign controller_inst_io_axiDataIn_2 = io_axiRData_2; // @[mecTop.scala 36:32]
-  assign controller_inst_io_axiDataIn_3 = io_axiRData_3; // @[mecTop.scala 36:32]
+  assign controller_inst_io_computeSize = io_size; // @[mecTop.scala 41:34]
+  assign controller_inst_io_initAddr1 = io_initAddr1; // @[mecTop.scala 42:32]
+  assign controller_inst_io_initAddr2 = io_initAddr2; // @[mecTop.scala 43:32]
+  assign controller_inst_io_mbBufferWidth = io_mbBufferWidth; // @[mecTop.scala 44:36]
+  assign controller_inst_io_stride = io_stride; // @[mecTop.scala 45:29]
+  assign controller_inst_io_numRows = io_numRows; // @[mecTop.scala 46:30]
+  assign controller_inst_io_computeDataIn = getSad4x_inst_io_out; // @[mecTop.scala 32:36]
+  assign controller_inst_io_axiDataIn_0 = io_axiRData_0; // @[mecTop.scala 37:32]
+  assign controller_inst_io_axiDataIn_1 = io_axiRData_1; // @[mecTop.scala 37:32]
+  assign controller_inst_io_axiDataIn_2 = io_axiRData_2; // @[mecTop.scala 37:32]
+  assign controller_inst_io_axiDataIn_3 = io_axiRData_3; // @[mecTop.scala 37:32]
   assign getSad4x_inst_clock = clock;
   assign getSad4x_inst_reset = reset;
-  assign getSad4x_inst_io_org_0 = controller_inst_io_vec1_0; // @[mecTop.scala 29:24]
-  assign getSad4x_inst_io_org_1 = controller_inst_io_vec1_1; // @[mecTop.scala 29:24]
-  assign getSad4x_inst_io_org_2 = controller_inst_io_vec1_2; // @[mecTop.scala 29:24]
-  assign getSad4x_inst_io_org_3 = controller_inst_io_vec1_3; // @[mecTop.scala 29:24]
-  assign getSad4x_inst_io_cur_0 = controller_inst_io_vec2_0; // @[mecTop.scala 30:24]
-  assign getSad4x_inst_io_cur_1 = controller_inst_io_vec2_1; // @[mecTop.scala 30:24]
-  assign getSad4x_inst_io_cur_2 = controller_inst_io_vec2_2; // @[mecTop.scala 30:24]
-  assign getSad4x_inst_io_cur_3 = controller_inst_io_vec2_3; // @[mecTop.scala 30:24]
+  assign getSad4x_inst_io_org_0 = controller_inst_io_vec1_0; // @[mecTop.scala 30:24]
+  assign getSad4x_inst_io_org_1 = controller_inst_io_vec1_1; // @[mecTop.scala 30:24]
+  assign getSad4x_inst_io_org_2 = controller_inst_io_vec1_2; // @[mecTop.scala 30:24]
+  assign getSad4x_inst_io_org_3 = controller_inst_io_vec1_3; // @[mecTop.scala 30:24]
+  assign getSad4x_inst_io_cur_0 = controller_inst_io_vec2_0; // @[mecTop.scala 31:24]
+  assign getSad4x_inst_io_cur_1 = controller_inst_io_vec2_1; // @[mecTop.scala 31:24]
+  assign getSad4x_inst_io_cur_2 = controller_inst_io_vec2_2; // @[mecTop.scala 31:24]
+  assign getSad4x_inst_io_cur_3 = controller_inst_io_vec2_3; // @[mecTop.scala 31:24]
 endmodule
