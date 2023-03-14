@@ -9,6 +9,7 @@ object mecTop extends App {
 
 class topLevel() extends Module {
   val io = IO(new Bundle {
+    val size          = Input(UInt(5.W))
     val initAddr1     = Input(UInt(64.W))
     val initAddr2     = Input(UInt(64.W))
     val mbBufferWidth = Input(UInt(32.W))
@@ -37,6 +38,7 @@ class topLevel() extends Module {
   io.axiWData   := controller_inst.io.axiDataOut
 
   // Connect other inputs to the controller
+  controller_inst.io.computeSize := io.size
   controller_inst.io.initAddr1 := io.initAddr1
   controller_inst.io.initAddr2 := io.initAddr2
   controller_inst.io.mbBufferWidth := io.mbBufferWidth
