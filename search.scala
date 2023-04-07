@@ -2,11 +2,16 @@
 import chisel3._
 import chisel3.experimental.FixedPoint
 
-class search() extends Module {
+object search extends App {
+  println("[{(Generating Verilog file)}]")
+  (new chisel3.stage.ChiselStage).emitVerilog(new searchTop())
+}
+
+class searchTop() extends Module {
   val io = IO(new Bundle {
     val done_charge = Input(UInt(1.W))
     val cur_data_in = Input(Vec(256, UInt(8.W)))
-    val org_data_in = Input(Vec(1116, UInt(8.W)))
+    val org_data_in = Input(Vec(1152, UInt(8.W)))
 
     val mvx_min     = Output(UInt(8.W))
     val mvy_min     = Output(UInt(8.W))

@@ -5,9 +5,9 @@ import chisel3.experimental.FixedPoint
 class sad16x() extends Module {
   val io = IO(new Bundle {
     val start = Input(UInt(1.W))
-    val org = Input(Vec(256, UInt(8.W)))
-    val cur = Input(Vec(256, UInt(8.W)))
-    val out = Output(UInt(16.W))
+    val org   = Input(Vec(256, UInt(8.W)))
+    val cur   = Input(Vec(256, UInt(8.W)))
+    val out   = Output(UInt(16.W))
   })
 
   when(io.start === 1.U) {
