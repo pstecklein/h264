@@ -8,12 +8,12 @@ class MecTopTest extends AnyFreeSpec with ChiselScalatestTester {
   "Specification" in {
     test(new topLevel()) { dut =>
       // idle
-      dut.io.size.poke(4.U)
+      dut.io.size.poke(8.U)
       dut.io.initAddr1.poke(0.U)
       dut.io.initAddr2.poke(0.U)
       dut.io.mbBufferWidth.poke(0.U)
       dut.io.stride.poke(0.U)
-      dut.io.numRows.poke(2.U)
+      dut.io.numRows.poke(1.U)
 
       // fetch1
       dut.clock.step(1)
