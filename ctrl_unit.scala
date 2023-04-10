@@ -6,12 +6,12 @@ import chisel3.util.Enum
 class ctrl_unit() extends Module {
   val io = IO(new Bundle {
     val done_charge = Input(UInt(1.W))
-    val mvx_min     = Input(UInt(8.W))
-    val mvy_min     = Input(UInt(8.W))
-    val address_min = Input(UInt(10.W))
+    val mvx_min     = Input(SInt(4.W))
+    val mvy_min     = Input(SInt(4.W))
+    val address_min = Input(UInt(11.W))
 
-    val mvx         = Output(UInt(8.W))
-    val mvy         = Output(UInt(8.W))
+    val mvx         = Output(SInt(4.W))
+    val mvy         = Output(SInt(4.W))
     val address     = Output(UInt(10.W))
     val start_sad   = Output(UInt(1.W))
     val start_comp  = Output(UInt(1.W))
@@ -24,13 +24,13 @@ class ctrl_unit() extends Module {
   io.done_ldps := 0.U
 
   // set values to center of search, update values in FSM
-  io.mvx := 0.U
-  io.mvy := 0.U
-  io.address := 328.U
+  io.mvx := 0.S
+  io.mvy := 0.S
+  io.address := 217.U
 
-  // 17*21=357 possible MB in reference area
-  val visited = RegInit(VecInit(Seq.fill(357)(false.B)))
-  val curr_mid = RegInit(1153.U(11.W))
+  // 15x15=357 possible MB in reference area
+  val visited = RegInit(VecInit(Seq.fill(225)(false.B)))
+  val curr_mid = RegInit(900.U(10.W))
 
   // FSM
   val idle :: north :: calcNorth :: compareNorth :: east :: calcEast :: compareEast :: south :: calcSouth :: compareSouth :: west :: calcWest :: compareWest :: mid :: calcMid :: compareMid :: decision :: finish :: Nil = Enum(18)
@@ -40,8 +40,8 @@ class ctrl_unit() extends Module {
   when(io.done_charge === 0.U) {
     state := idle
   }.elsewhen(state === idle) {
-    io.address := io.address_min - 32.U
-    io.mvy := io.mvy_min + 1.U
+    io.address := io.address_min - 30.U
+    io.mvy := io.mvy_min + 1.S
     state := north
   }.elsewhen(state === north) {
     when(visited(io.address_min) === true.B) {
@@ -56,7 +56,7 @@ class ctrl_unit() extends Module {
     state := compareNorth
   }.elsewhen(state === compareNorth) {
     io.address := io.address_min + 1.U
-    io.mvx := io.mvx_min + 1.U
+    io.mvx := io.mvx_min + 1.S
     state := east
   }.elsewhen(state === east) {
     io.start_sad := 1.U
@@ -65,8 +65,8 @@ class ctrl_unit() extends Module {
     io.start_comp := 1.U
     state := compareEast
   }.elsewhen(state === compareEast) {
-    io.address := io.address_min + 32.U
-    io.mvy := io.mvy_min - 1.U
+    io.address := io.address_min + 30.U
+    io.mvy := io.mvy_min - 1.S
     state := south
   }.elsewhen(state === south) {
     io.start_sad := 1.U
@@ -76,7 +76,7 @@ class ctrl_unit() extends Module {
     state := compareSouth
   }.elsewhen(state === compareSouth) {
     io.address := io.address_min - 1.U
-    io.mvx := io.mvx_min - 1.U
+    io.mvx := io.mvx_min - 1.S
     state := west
   }.elsewhen(state === west) {
     io.start_sad := 1.U
@@ -102,8 +102,8 @@ class ctrl_unit() extends Module {
       io.done_ldps := 1.U
       state := finish
     }.otherwise {
-      io.address := io.address_min - 32.U
-      io.mvy := io.mvy_min + 1.U
+      io.address := io.address_min - 30.U
+      io.mvy := io.mvy_min + 1.S
       state := north
     }
   }.elsewhen(state === finish) {
