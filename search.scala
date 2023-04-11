@@ -11,7 +11,7 @@ class searchTop() extends Module {
   val io = IO(new Bundle {
     val done_charge = Input(UInt(1.W))
     val cur_data_in = Input(Vec(256, UInt(8.W)))
-    val org_data_in = Input(Vec(899, UInt(8.W)))
+    val org_data_in = Input(Vec(1024, UInt(8.W)))
 
     val mvx_min     = Output(SInt(4.W))
     val mvy_min     = Output(SInt(4.W))

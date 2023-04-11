@@ -16,11 +16,11 @@ class comparator() extends Module {
   val min_sad_reg      = RegInit(65535.U(16.W))
   val min_mvx_reg      = RegInit(0.S(4.W))
   val min_mvy_reg      = RegInit(0.S(4.W))
-  val min_address_reg  = RegInit(867.U(10.W))
+  val min_address_reg  = RegInit(264.U(10.W))
 
   // 0 - North | 1 - East | 2 - South | 3 - West | 4 - Middle |
   val pos      = RegInit(0.U(3.W))
-  val init_mid = RegInit(217.U(10.W))
+  val init_mid = RegInit(264.U(10.W))
   val init_mvx = RegInit(0.S(4.W))
   val init_mvy = RegInit(0.S(4.W))
 
@@ -28,13 +28,13 @@ class comparator() extends Module {
     when(io.sad_res < min_sad_reg) {
       min_sad_reg := io.sad_res
       when(pos === 0.U) {
-        min_address_reg := init_mid - 30.U
+        min_address_reg := init_mid - 32.U
         min_mvy_reg := min_mvy_reg + 1.S
       }.elsewhen(pos === 1.U) {
         min_address_reg := init_mid + 1.U
         min_mvx_reg := min_mvx_reg + 1.S
       }.elsewhen(pos === 2.U) {
-        min_address_reg := init_mid + 30.U
+        min_address_reg := init_mid + 32.U
         min_mvy_reg := min_mvy_reg - 1.S
       }.elsewhen(pos === 3.U) {
         min_address_reg := init_mid - 1.U
