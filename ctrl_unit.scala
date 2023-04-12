@@ -23,14 +23,13 @@ class ctrl_unit() extends Module {
   io.start_comp := 0.U
   io.done_ldps := 0.U
 
-  // set values to center of search, update values in FSM
-  io.mvx := 0.S
-  io.mvy := 0.S
-  io.address := 264.U
+  // register values to center of search, update values in FSM
+  val mvx_reg = RegInit(0.S(4.W))
+  val mvy_reg = RegInit(0.S(4.W))
+  val address_reg = RegInit(264.U(10.W))
 
   // 17x17=289 possible MB in reference area
   val visited = RegInit(VecInit(Seq.fill(512)(false.B)))
-  val curr_mid = RegInit(0.U(10.W))
 
   // FSM
   val idle :: north :: calcNorth :: compareNorth :: east :: calcEast :: compareEast :: south :: calcSouth :: compareSouth :: west :: calcWest :: compareWest :: mid :: calcMid :: compareMid :: decision :: finish :: Nil = Enum(18)
@@ -42,12 +41,12 @@ class ctrl_unit() extends Module {
   }.elsewhen(state === idle) {
     state := north
   }.elsewhen(state === north) {
-    when(visited(io.address_min) === true.B) {
+    when(visited(io.address_min) === true.B) { //address_reg
       io.done_ldps := 1.U
       state := finish
     }.otherwise {
-      io.address := io.address_min - 32.U
-      io.mvy := io.mvy_min + 1.S
+      address_reg := address_reg - 32.U
+      mvy_reg := mvy_reg + 1.S
       state := calcNorth
     }
   }.elsewhen(state === calcNorth) {
@@ -57,8 +56,9 @@ class ctrl_unit() extends Module {
   }.elsewhen(state === compareNorth) {
     state := east
   }.elsewhen(state === east) {
-    io.address := io.address_min + 1.U
-    io.mvx := io.mvx_min + 1.S
+    address_reg := address_reg + 33.U
+    mvx_reg := mvx_reg + 1.S
+    mvy_reg := mvy_reg - 1.S
     state := calcEast
   }.elsewhen(state === calcEast) {
     io.start_sad := 1.U
@@ -67,8 +67,9 @@ class ctrl_unit() extends Module {
   }.elsewhen(state === compareEast) {
     state := south
   }.elsewhen(state === south) {
-    io.address := io.address_min + 32.U
-    io.mvy := io.mvy_min - 1.S
+    address_reg := address_reg + 31.U
+    mvx_reg := mvx_reg - 1.S
+    mvy_reg := mvy_reg - 1.S
     state := calcSouth
   }.elsewhen(state === calcSouth) {
     io.start_sad := 1.U
@@ -77,8 +78,9 @@ class ctrl_unit() extends Module {
   }.elsewhen(state === compareSouth) {
     state := west
   }.elsewhen(state === west) {
-    io.address := io.address_min - 1.U
-    io.mvx := io.mvx_min - 1.S
+    address_reg := address_reg - 33.U
+    mvx_reg := mvx_reg - 1.S
+    mvy_reg := mvy_reg + 1.S
     state := calcWest
   }.elsewhen(state === calcWest) {
     io.start_sad := 1.U
@@ -87,8 +89,9 @@ class ctrl_unit() extends Module {
   }.elsewhen(state === compareWest) {
     state := mid
   }.elsewhen(state === mid) {
-    visited(io.address_min) := true.B
-    curr_mid := io.address_min
+    address_reg := address_reg + 1.U
+    mvx_reg := mvx_reg + 1.S
+    visited(address_reg) := true.B
     state := calcMid
   }.elsewhen(state === calcMid) {
     io.start_sad := 1.U
@@ -98,16 +101,24 @@ class ctrl_unit() extends Module {
     state := decision
   }.elsewhen(state === decision) {
     // if address min is center then stop
-    when(io.address_min === curr_mid) {
+    when(io.address_min === address_reg) {
       io.done_ldps := 1.U
       state := finish
     }.otherwise {
+      address_reg := io.address_min
+      mvx_reg := io.mvx_min
+      mvy_reg := io.mvy_min
       state := north
     }
   }.elsewhen(state === finish) {
+    io.done_ldps := 1.U
     state := finish
   }.otherwise {
     state := idle
   }
+
+  io.mvx := mvx_reg
+  io.mvy := mvy_reg
+  io.address := address_reg
 
 }

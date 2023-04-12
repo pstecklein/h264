@@ -10,20 +10,26 @@ object search extends App {
 class searchTop() extends Module {
   val io = IO(new Bundle {
     val done_charge = Input(UInt(1.W))
-    val cur_data_in = Input(Vec(256, UInt(8.W)))
-    val org_data_in = Input(Vec(1024, UInt(8.W)))
+    val cur_data_in = Input(Vec(256, UInt(16.W)))
+    val org_data_in = Input(Vec(1024, UInt(16.W)))
 
     val mvx_min     = Output(SInt(4.W))
     val mvy_min     = Output(SInt(4.W))
     val address_min = Output(UInt(10.W))
     val min_sad     = Output(UInt(16.W))
     val done_ldps   = Output(UInt(1.W))
+
+    val testSumC = Output(UInt(16.W))
+    val testSumO = Output(UInt(16.W))
   })
 
   val extraction_inst = Module(new extraction())
   val ctrl_unit_inst  = Module(new ctrl_unit())
   val sad16x_inst     = Module(new sad16x())
   val comparator_inst = Module(new comparator())
+
+  io.testSumC := sad16x_inst.io.testSumCur
+  io.testSumO := sad16x_inst.io.testSumOrg
 
   io.mvx_min                    := comparator_inst.io.mvx_min
   io.mvy_min                    := comparator_inst.io.mvy_min

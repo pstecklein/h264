@@ -29,18 +29,24 @@ class comparator() extends Module {
       min_sad_reg := io.sad_res
       when(pos === 0.U) {
         min_address_reg := init_mid - 32.U
-        min_mvy_reg := min_mvy_reg + 1.S
+        min_mvy_reg := init_mvy + 1.S
+        min_mvx_reg := init_mvx
       }.elsewhen(pos === 1.U) {
         min_address_reg := init_mid + 1.U
-        min_mvx_reg := min_mvx_reg + 1.S
+        min_mvx_reg := init_mvx + 1.S
+        min_mvy_reg := init_mvy
       }.elsewhen(pos === 2.U) {
         min_address_reg := init_mid + 32.U
-        min_mvy_reg := min_mvy_reg - 1.S
+        min_mvy_reg := init_mvy - 1.S
+        min_mvx_reg := init_mvx
       }.elsewhen(pos === 3.U) {
         min_address_reg := init_mid - 1.U
-        min_mvx_reg := min_mvx_reg - 1.S
+        min_mvx_reg := init_mvx - 1.S
+        min_mvy_reg := init_mvy
       }.otherwise {
-        // mid is min so keep current vector and address
+        min_address_reg := init_mid
+        min_mvx_reg := init_mvx
+        min_mvy_reg := init_mvy
       }
     }
     when(pos === 4.U) {
