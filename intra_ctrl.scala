@@ -6,37 +6,37 @@ import chisel3.util.Enum
 
 class intra_ctrl() extends Module {
   val io = IO(new Bundle {
-    val start          = Input(UInt(1.W))
+    val start          = Input(Bool())
 
-    val capture_pix    = Output(UInt(1.W))
-    val capture_pix_DC = Output(UInt(1.W))
-    val capture_sad    = Output(UInt(1.W))
-    val done           = Output(UInt(1.W))
+    val capture_pix    = Output(Bool())
+    val capture_pix_DC = Output(Bool())
+    val capture_sad    = Output(Bool())
+    val done           = Output(Bool())
   })
 
-  io.capture_pix    := 0.U
-  io.capture_pix_DC := 0.U
-  io.capture_sad    := 0.U
-
-  io.done := 0.U
+  io.capture_pix    := false.B
+  io.capture_pix_DC := false.B
+  io.capture_sad    := false.B
+  io.done           := false.B
 
   // FSM
   val idle :: predict :: calcSAD :: compare :: Nil = Enum(4)
   val state = RegInit(0.U(2.W))
 
   when(io.start === 1.U) {
-    io.capture_pix := 1.U
-    state := predict
+    io.capture_pix   := true.B
+    state            := predict
   }.otherwise{
     when(state === predict) {
-      state := calcSAD
+      state          := calcSAD
     }.elsewhen(state === calcSAD) {
-      state := compare
+      io.capture_sad := true.B
+      state          := compare
     }.elsewhen(state === compare) {
-      io.done := 1.U
-      state := idle
+      io.done        := true.B
+      state          := idle
     }.otherwise {
-      state := idle
+      state          := idle
     }
   }
 

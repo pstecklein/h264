@@ -11,18 +11,18 @@ object intra4x4top extends App {
 class intra4x4structural() extends Module {
   val io = IO(new Bundle {
     val neighbor_pixels = Input(Vec(13, UInt(8.W)))
-    val valid_IL        = Input(UInt(1.W))
-    val valid_EH        = Input(UInt(1.W))
-    val valid_AD        = Input(UInt(1.W))
-    val valid_M         = Input(UInt(1.W))
+    val valid_IL        = Input(Bool())
+    val valid_EH        = Input(Bool())
+    val valid_AD        = Input(Bool())
+    val valid_M         = Input(Bool())
+    val start           = Input(Bool())
     val src_pixels      = Input(Vec(16, UInt(8.W)))
-    val start           = Input(UInt(1.W))
 
-    val sad_best = Output(UInt(12.W))
-    val mode_best = Output(UInt(4.W))
-    val pred_blk_best = Output(Vec(16, UInt(8.W)))
-    val diff_blk_best = Output(Vec(16, SInt(9.W)))
-    val done = Output(UInt(1.W))
+    val sad_best        = Output(UInt(12.W))
+    val mode_best       = Output(UInt(4.W))
+    val pred_blk_best   = Output(Vec(16, UInt(8.W)))
+    val diff_blk_best   = Output(Vec(16, SInt(9.W)))
+    val done            = Output(Bool())
   })
 
   val predictor_inst  = Module(new predictor())

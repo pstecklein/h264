@@ -4,7 +4,7 @@ import chisel3.experimental.FixedPoint
 
 class intra_cmp() extends Module {
   val io = IO(new Bundle {
-    val start     = Input(UInt(1.W))
+    val start     = Input(Bool())
     val sad_res   = Input(Vec(9, UInt(12.W)))
     val db0       = Input(Vec(16, SInt(9.W)))
     val db1       = Input(Vec(16, SInt(9.W)))
@@ -31,7 +31,7 @@ class intra_cmp() extends Module {
     val diff_best = Output(Vec(16, SInt(9.W)))
   })
 
-  when(io.start === 1.U) {
+  when(io.start) {
     val sad0 = io.sad_res(0)
     val sad1 = io.sad_res(1)
     val sad2 = io.sad_res(2)
