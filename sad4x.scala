@@ -4,7 +4,7 @@ import chisel3.experimental.FixedPoint
 
 class sad4x() extends Module {
   val io = IO(new Bundle {
-    val valid   = Input(UInt(4.W))
+    val valid   = Input(Vec(9, UInt(1.W)))
     val src_pix = Input(Vec(16, UInt(8.W)))
     val pred0   = Input(Vec(16, UInt(8.W)))
     val pred1   = Input(Vec(16, UInt(8.W)))
@@ -34,7 +34,7 @@ class sad4x() extends Module {
   }.otherwise {
     io.sad_seq(0) := 4095.U
     for (i <- 0 until 16) {
-      io.diff0(i) := 0.U
+      io.diff0(i) := 0.S
     }
   }
 
@@ -44,7 +44,7 @@ class sad4x() extends Module {
   }.otherwise {
     io.sad_seq(1) := 4095.U
     for (i <- 0 until 16) {
-      io.diff1(i) := 0.U
+      io.diff1(i) := 0.S
     }
   }
 
@@ -54,7 +54,7 @@ class sad4x() extends Module {
   }.otherwise {
     io.sad_seq(2) := 4095.U
     for (i <- 0 until 16) {
-      io.diff2(i) := 0.U
+      io.diff2(i) := 0.S
     }
   }
 
@@ -64,7 +64,7 @@ class sad4x() extends Module {
   }.otherwise {
     io.sad_seq(3) := 4095.U
     for (i <- 0 until 16) {
-      io.diff3(i) := 0.U
+      io.diff3(i) := 0.S
     }
   }
 
@@ -74,7 +74,7 @@ class sad4x() extends Module {
   }.otherwise {
     io.sad_seq(4) := 4095.U
     for (i <- 0 until 16) {
-      io.diff4(i) := 0.U
+      io.diff4(i) := 0.S
     }
   }
 
@@ -84,7 +84,7 @@ class sad4x() extends Module {
   }.otherwise {
     io.sad_seq(5) := 4095.U
     for (i <- 0 until 16) {
-      io.diff5(i) := 0.U
+      io.diff5(i) := 0.S
     }
   }
 
@@ -94,7 +94,7 @@ class sad4x() extends Module {
   }.otherwise {
     io.sad_seq(6) := 4095.U
     for (i <- 0 until 16) {
-      io.diff6(i) := 0.U
+      io.diff6(i) := 0.S
     }
   }
 
@@ -104,7 +104,7 @@ class sad4x() extends Module {
   }.otherwise {
     io.sad_seq(7) := 4095.U
     for (i <- 0 until 16) {
-      io.diff7(i) := 0.U
+      io.diff7(i) := 0.S
     }
   }
 
@@ -114,7 +114,7 @@ class sad4x() extends Module {
   }.otherwise {
     io.sad_seq(8) := 4095.U
     for (i <- 0 until 16) {
-      io.diff8(i) := 0.U
+      io.diff8(i) := 0.S
     }
   }
 

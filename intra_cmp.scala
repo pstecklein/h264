@@ -32,28 +32,109 @@ class intra_cmp() extends Module {
   })
 
   when(io.start === 1.U) {
-    val sad_min_index = io.sad_res.zipWithIndex.reduceLeft((x,y) => Mux(x._1 < y._1, x, y))._2.U
-    io.sad_best := io.sad_res(sad_min_index)
-    io.mode_best := sad_min_index
+    val sad0 = io.sad_res(0)
+    val sad1 = io.sad_res(1)
+    val sad2 = io.sad_res(2)
+    val sad3 = io.sad_res(3)
+    val sad4 = io.sad_res(4)
+    val sad5 = io.sad_res(5)
+    val sad6 = io.sad_res(6)
+    val sad7 = io.sad_res(7)
+    val sad8 = io.sad_res(8)
 
-    io.pred_best := Mux(sad_min_index === 0.U, io.pred_pix0,
-      Mux(sad_min_index === 1.U, io.pred_pix1,
-        Mux(sad_min_index === 2.U, io.pred_pix2,
-          Mux(sad_min_index === 3.U, io.pred_pix3,
-            Mux(sad_min_index === 4.U, io.pred_pix4,
-              Mux(sad_min_index === 5.U, io.pred_pix5,
-                Mux(sad_min_index === 6.U, io.pred_pix6,
-                  Mux(sad_min_index === 7.U, io.pred_pix7,
+    val sad0or1 = Wire(UInt(12.W))
+    when(sad0 < sad1) {
+      sad0or1 := sad0
+    }.otherwise{
+      sad0or1 := sad1
+    }
+    val sad2or3 = Wire(UInt(12.W))
+    when(sad2 < sad3) {
+      sad2or3 := sad2
+    }.otherwise {
+      sad2or3 := sad3
+    }
+    val sad4or5 = Wire(UInt(12.W))
+    when(sad4 < sad5) {
+      sad4or5 := sad4
+    }.otherwise {
+      sad4or5 := sad5
+    }
+    val sad6or7 = Wire(UInt(12.W))
+    when(sad6 < sad7) {
+      sad6or7 := sad6
+    }.otherwise {
+      sad6or7 := sad7
+    }
+    val sad0123 = Wire(UInt(12.W))
+    when(sad0or1 < sad2or3) {
+      sad0123 := sad0or1
+    }.otherwise {
+      sad0123 := sad2or3
+    }
+    val sad4567 = Wire(UInt(12.W))
+    when(sad4or5 < sad6or7) {
+      sad4567 := sad4or5
+    }.otherwise {
+      sad4567 := sad6or7
+    }
+    val sad0to7 = Wire(UInt(12.W))
+    when(sad0123 < sad4567) {
+      sad0to7 := sad0123
+    }.otherwise {
+      sad0to7 := sad4567
+    }
+    val minSad = Wire(UInt(12.W))
+    when(sad0to7 < sad8) {
+      minSad := sad0to7
+    }.otherwise {
+      minSad := sad8
+    }
+
+    val minIndex = Wire(UInt(4.W))
+    when(minSad === sad0) {
+      minIndex := 0.U
+    }.elsewhen(minSad === sad1) {
+      minIndex := 1.U
+    }.elsewhen(minSad === sad2) {
+      minIndex := 2.U
+    }.elsewhen(minSad === sad3) {
+      minIndex := 3.U
+    }.elsewhen(minSad === sad4) {
+      minIndex := 4.U
+    }.elsewhen(minSad === sad5) {
+      minIndex := 5.U
+    }.elsewhen(minSad === sad6) {
+      minIndex := 6.U
+    }.elsewhen(minSad === sad7) {
+      minIndex := 7.U
+    }.elsewhen(minSad === sad8) {
+      minIndex := 8.U
+    }.otherwise{
+      minIndex := 2.U
+    }
+
+    io.sad_best := io.sad_res(minIndex)
+    io.mode_best := minIndex
+
+    io.pred_best := Mux(minIndex === 0.U, io.pred_pix0,
+      Mux(minIndex === 1.U, io.pred_pix1,
+        Mux(minIndex === 2.U, io.pred_pix2,
+          Mux(minIndex === 3.U, io.pred_pix3,
+            Mux(minIndex === 4.U, io.pred_pix4,
+              Mux(minIndex === 5.U, io.pred_pix5,
+                Mux(minIndex === 6.U, io.pred_pix6,
+                  Mux(minIndex === 7.U, io.pred_pix7,
                     io.pred_pix8))))))))
 
-    io.diff_best := Mux(sad_min_index === 0.U, io.db0,
-      Mux(sad_min_index === 1.U, io.db1,
-        Mux(sad_min_index === 2.U, io.db2,
-          Mux(sad_min_index === 3.U, io.db3,
-            Mux(sad_min_index === 4.U, io.db4,
-              Mux(sad_min_index === 5.U, io.db5,
-                Mux(sad_min_index === 6.U, io.db6,
-                  Mux(sad_min_index === 7.U, io.db7,
+    io.diff_best := Mux(minIndex === 0.U, io.db0,
+      Mux(minIndex === 1.U, io.db1,
+        Mux(minIndex === 2.U, io.db2,
+          Mux(minIndex === 3.U, io.db3,
+            Mux(minIndex === 4.U, io.db4,
+              Mux(minIndex === 5.U, io.db5,
+                Mux(minIndex === 6.U, io.db6,
+                  Mux(minIndex === 7.U, io.db7,
                     io.db8))))))))
 
   }.otherwise{
@@ -63,7 +144,7 @@ class intra_cmp() extends Module {
       io.pred_best(i) := 0.U
     }
     for (i <- 0 until 16) {
-      io.diff_best(i) := 0.U
+      io.diff_best(i) := 0.S
     }
   }
 }

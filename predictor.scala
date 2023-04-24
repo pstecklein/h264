@@ -24,6 +24,10 @@ class predictor() extends Module {
     val predicted_pix8   = Output(Vec(16, UInt(8.W)))
   })
 
+  for (i <- 0 until 9) {
+    io.valid(i) := 0.U
+  }
+
   when(io.capture_pixel === 1.U) {
     val eq0 = io.neighbors(0) + io.neighbors(1) + 1.U
     val eq1 = io.neighbors(1) + io.neighbors(2) + 1.U
@@ -79,7 +83,6 @@ class predictor() extends Module {
       for (i <- 0 until 16) {
         io.predicted_pix0(i) := 0.U
       }
-      io.valid(0) := 0.U
     }
 
     when(io.valid_IL === 1.U) {
@@ -104,18 +107,17 @@ class predictor() extends Module {
       for (i <- 0 until 16) {
         io.predicted_pix1(i) := 0.U
       }
-      io.valid(1) := 0.U
     }
 
     when(io.valid_AD === 1.U && io.valid_IL === 1.U) {
       for (i <- 0 until 16) {
         io.predicted_pix2(i) := eq29
       }
+      io.valid(2) := 1.U
     }.otherwise {
       for (i <- 0 until 16) {
         io.predicted_pix2(i) := 0.U
       }
-      io.valid(2) := 0.U
     }
 
     when(io.valid_AD === 1.U && io.valid_EH === 1.U) {
@@ -135,11 +137,11 @@ class predictor() extends Module {
       io.predicted_pix3(13) := eq19
       io.predicted_pix3(14) := eq20
       io.predicted_pix3(15) := eq25
+      io.valid(3) := 1.U
     }.otherwise {
       for (i <- 0 until 16) {
         io.predicted_pix3(i) := 0.U
       }
-      io.valid(3) := 0.U
     }
 
     when(io.valid_AD === 1.U && io.valid_IL === 1.U && io.valid_M === 1.U) {
@@ -159,11 +161,11 @@ class predictor() extends Module {
       io.predicted_pix4(13) := eq22
       io.predicted_pix4(14) := eq21
       io.predicted_pix4(15) := eq24
+      io.valid(4) := 1.U
     }.otherwise {
       for (i <- 0 until 16) {
         io.predicted_pix4(i) := 0.U
       }
-      io.valid(4) := 0.U
     }
 
     when(io.valid_AD === 1.U && io.valid_IL === 1.U && io.valid_M === 1.U) {
@@ -183,11 +185,11 @@ class predictor() extends Module {
       io.predicted_pix5(13) := eq24
       io.predicted_pix5(14) := eq14
       io.predicted_pix5(15) := eq15
+      io.valid(5) := 1.U
     }.otherwise {
       for (i <- 0 until 16) {
         io.predicted_pix5(i) := 0.U
       }
-      io.valid(5) := 0.U
     }
 
     when(io.valid_AD === 1.U && io.valid_IL === 1.U && io.valid_M === 1.U) {
@@ -207,11 +209,11 @@ class predictor() extends Module {
       io.predicted_pix6(13) := eq23
       io.predicted_pix6(14) := eq8
       io.predicted_pix6(15) := eq22
+      io.valid(6) := 1.U
     }.otherwise {
       for (i <- 0 until 16) {
         io.predicted_pix6(i) := 0.U
       }
-      io.valid(6) := 0.U
     }
 
     when(io.valid_AD === 1.U && io.valid_EH === 1.U) {
@@ -231,11 +233,11 @@ class predictor() extends Module {
       io.predicted_pix7(13) := eq17
       io.predicted_pix7(14) := eq18
       io.predicted_pix7(15) := eq19
+      io.valid(7) := 1.U
     }.otherwise {
       for (i <- 0 until 16) {
         io.predicted_pix7(i) := 0.U
       }
-      io.valid(7) := 0.U
     }
 
     when(io.valid_IL === 1.U) {
@@ -255,16 +257,13 @@ class predictor() extends Module {
       io.predicted_pix8(13) := io.neighbors(11)
       io.predicted_pix8(14) := io.neighbors(11)
       io.predicted_pix8(15) := io.neighbors(11)
+      io.valid(8) := 1.U
     }.otherwise {
       for (i <- 0 until 16) {
         io.predicted_pix8(i) := 0.U
       }
-      io.valid(8) := 0.U
     }
   }.otherwise{
-    for (i <- 0 until 9) {
-      io.valid(i) := 0.U
-    }
     for (i <- 0 until 16) {
       io.predicted_pix0(i) := 0.U
     }
